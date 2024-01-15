@@ -1,8 +1,11 @@
 <!DOCTYPE html>
+<?php
+session_start();
+?>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Task 7</title>
+    <title>Task 8</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
@@ -31,6 +34,9 @@
                 </symbol>
             </svg>
             <?php
+            if (empty($_SESSION['user'])) {
+                $_SESSION['user'] = [];
+            }
             if (!empty($_POST)):
                 if (!empty($_POST['email']) && !empty($_POST['password'])):
                     if (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)):?>
@@ -43,14 +49,46 @@
                             </div>
                         </div>
                     <?php else: ?>
+
                         <div class="mb-3 alert alert-success d-flex align-items-center" role="alert">
                             <svg class="icon-small bi flex-shrink-0 me-2" role="img" aria-label="Success:">
                                 <use xlink:href="#check-circle-fill"/>
                             </svg>
                             <div>
-                                You have tried to sing up with email <b> <?= $_POST['email']; ?></b>
+                                <?php
+                                $used = false;
+                                foreach ($_SESSION['user'] as $user) {
+                                    if ($user['email'] == $_POST['email']) {
+                                        $used = true;
+                                        ?>
+                                        You have <b>already</b> tried this email <b> <?= $_POST['email']; ?></b>
+                                        <?php
+                                        if (password_verify($_POST['password'], $user['password'])) {
+                                            ?>
+                                            <br>
+                                            Used password is <b>correct</b>!
+                                            <?php
+                                        } else {
+                                            ?>
+                                            <br>
+                                            Used password is <b>incorrect</b>!
+                                            <?php
+                                        }
+                                        break;
+                                    }
+                                }
+                                if (!$used) {
+                                    $id = count($_SESSION['user']);
+                                    $_SESSION['user'][$id] = [
+                                        'email' => $_POST['email'],
+                                        'password' => password_hash($_POST['password'], PASSWORD_BCRYPT)
+                                    ];
+                                    ?>
+                                    You have tried to sing up with email <b> <?= $_POST['email']; ?></b>
+                                <?php } ?>
                             </div>
                         </div>
+
                     <?php endif; ?>
                 <?php elseif (empty($_POST['email']) && !empty($_POST['password'])): ?>
                     <div class="mb-3 alert alert-warning d-flex align-items-center" role="alert">
@@ -114,9 +152,26 @@
             <div class="row justify-content-center my-3">
                 <button type="submit" class="col-4 btn btn-primary">Sign up</button>
             </div>
-
         </form>
     </div>
+    <?php if (!empty($_SESSION['user'])): ?>
+        <div class="row justify-content-center mt-5">
+            <div class="col-7 border border-primary border-2 rounded-4 p-3">
+                <?php
+                foreach ($_SESSION['user'] as $user):
+                    ?>
+                    <div class="row justify-content-center">
+                        <div class="col-10">
+                            <b>Email:</b> <?= $user['email']; ?>
+                        </div>
+                        <div class="col-10">
+                            <b>Password:</b> <?= $user['password']; ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    <?php endif; ?>
 </div>
 
 </body>
