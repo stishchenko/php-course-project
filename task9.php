@@ -3,7 +3,7 @@
 session_start();
 $delimeter = ';';
 if (!file_exists('users.csv')) {
-    $fileToCreate = fopen('users.csv', 'a+');
+    $fileToCreate = fopen('users.csv', 'a+') or die('Unable to create file!');
     fclose($fileToCreate);
 }
 ?>
@@ -48,7 +48,7 @@ if (!file_exists('users.csv')) {
 
                 if (isset($_POST['delete_user'])) {
                     $emailToDelete = $_POST['delete_user'];
-                    $users = file('users.csv', FILE_IGNORE_NEW_LINES);
+                    $users = file('users.csv', FILE_IGNORE_NEW_LINES) or die('Unable to read file!');
                     $updatedUsers = [];
                     foreach ($users as $user) {
                         if (explode($delimeter, $user)[0] !== $emailToDelete) {
@@ -64,7 +64,7 @@ if (!file_exists('users.csv')) {
                         }
                     }
                 } elseif (isset($_POST['delete_all'])) {
-                    $fileToClean = fopen('users.csv', 'w');
+                    $fileToClean = fopen('users.csv', 'w') or die('Unable to clean file!');
                     fclose($fileToClean);
                     $_SESSION['user'] = [];
                 } else {
@@ -114,7 +114,7 @@ if (!file_exists('users.csv')) {
                                             'email' => $_POST['email'],
                                             'password' => $hashed_password
                                         ];
-                                        $file = fopen('users.csv', 'a');
+                                        $file = fopen('users.csv', 'a') or die('Unable to open file!');
                                         fwrite($file, $_POST['email'] . $delimeter . $hashed_password . PHP_EOL);
                                         fclose($file);
                                         ?>
@@ -194,7 +194,7 @@ if (!file_exists('users.csv')) {
         <div class="row justify-content-end mt-5">
             <div class="col-8 border border-primary border-2 rounded-4 p-3">
                 <?php
-                $file = fopen('users.csv', 'r');
+                $file = fopen('users.csv', 'r') or die('Unable to open file!');
                 while (!feof($file)) {
                     $user = explode($delimeter, fgets($file));
                     if (!empty($user[0])):
