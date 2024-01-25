@@ -1,16 +1,17 @@
 <!DOCTYPE html>
 <?php
-session_start();
-$delimeter = ';';
-if (!file_exists('users.csv')) {
-    $fileToCreate = fopen('users.csv', 'a+') or die('Unable to create file!');
-    fclose($fileToCreate);
-}
+require_once('db.php');
+/*$file = fopen('users.txt', 'a');
+fwrite($file, password_hash('admin', PASSWORD_BCRYPT).PHP_EOL);
+fwrite($file, password_hash('john', PASSWORD_BCRYPT).PHP_EOL);
+fwrite($file, password_hash('jane', PASSWORD_BCRYPT).PHP_EOL);
+fclose($file);*/
 ?>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Task 9</title>
+    <title>Add user</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 
@@ -41,32 +42,13 @@ if (!file_exists('users.csv')) {
                 </symbol>
             </svg>
             <?php
-            if (empty($_SESSION['user'])) {
-                $_SESSION['user'] = [];
-            }
             if (!empty($_POST)):
-
+                $pdo = getPDO();
                 if (isset($_POST['delete_user'])) {
-                    $emailToDelete = $_POST['delete_user'];
-                    $users = file('users.csv', FILE_IGNORE_NEW_LINES) or die('Unable to read file!');
-                    $updatedUsers = [];
-                    foreach ($users as $user) {
-                        if (explode($delimeter, $user)[0] !== $emailToDelete) {
-                            $updatedUsers[] = $user;
-                        }
-                    }
-                    $updatedUsers[] = '';
-                    file_put_contents('users.csv', implode(PHP_EOL, $updatedUsers));
-                    foreach ($_SESSION['user'] as $key => $user) {
-                        if ($user['email'] === $emailToDelete) {
-                            unset($_SESSION['user'][$key]);
-                            break;
-                        }
-                    }
+                    $idToDelete = $_POST['delete_user'];
+                    deleteUser($pdo, $idToDelete);
                 } elseif (isset($_POST['delete_all'])) {
-                    $fileToClean = fopen('users.csv', 'w') or die('Unable to clean file!');
-                    fclose($fileToClean);
-                    $_SESSION['user'] = [];
+                    deleteAllUsers($pdo);
                 } else {
                     if (!empty($_POST['email']) && !empty($_POST['password'])):
                         if (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)):?>
@@ -79,7 +61,6 @@ if (!file_exists('users.csv')) {
                                 </div>
                             </div>
                         <?php else: ?>
-
                             <div class="mb-3 alert alert-success d-flex align-items-center" role="alert">
                                 <svg class="icon-small bi flex-shrink-0 me-2" role="img" aria-label="Success:">
                                     <use xlink:href="#check-circle-fill"/>
@@ -87,7 +68,7 @@ if (!file_exists('users.csv')) {
                                 <div>
                                     <?php
                                     $used = false;
-                                    foreach ($_SESSION['user'] as $user) {
+                                    foreach (getUsers($pdo) as $user) {
                                         if ($user['email'] == $_POST['email']) {
                                             $used = true;
                                             ?>
@@ -108,15 +89,8 @@ if (!file_exists('users.csv')) {
                                         }
                                     }
                                     if (!$used) {
-                                        $id = count($_SESSION['user']);
-                                        $hashed_password = password_hash($_POST['password'], PASSWORD_BCRYPT);
-                                        $_SESSION['user'][$id] = [
-                                            'email' => $_POST['email'],
-                                            'password' => $hashed_password
-                                        ];
-                                        $file = fopen('users.csv', 'a') or die('Unable to open file!');
-                                        fwrite($file, $_POST['email'] . $delimeter . $hashed_password . PHP_EOL);
-                                        fclose($file);
+                                        addNewUser($pdo, htmlspecialchars($_POST['name']), htmlspecialchars($_POST['email']),
+                                            password_hash($_POST['password'], PASSWORD_BCRYPT));
                                         ?>
                                         You have tried to sing up with email <b> <?= $_POST['email']; ?></b>
                                     <?php } ?>
@@ -162,7 +136,8 @@ if (!file_exists('users.csv')) {
                             </div>
                         </div>
                     <?php endif;
-                } ?>
+                }
+                $pdo = null; ?>
             <?php endif; ?>
         </div>
     </div>
@@ -170,6 +145,17 @@ if (!file_exists('users.csv')) {
     <div class="row justify-content-center">
         <form method="POST" class="col-3 border border-primary border-2 rounded-4 p-3">
             <div class="mt-3 row justify-content-center">
+                <label for="name" class="form-label col-9">Name
+                    <?php if (empty($_POST) ||
+                        (!empty($_POST['email']) && !empty($_POST['password']) && !empty($_POST['name']))): ?>
+                        <input type="text" name="name" placeholder="Name" class="form-control my-1">
+                    <?php elseif (!empty($_POST['name'])): ?>
+                        <input type="text" name="name" placeholder="Name" class="form-control my-1"
+                               value="<?= $_POST['name']; ?>">
+                    <?php else: ?>
+                        <input type="text" name="name" placeholder="Name" class="form-control my-1">
+                    <?php endif; ?>
+                </label>
                 <label for="email" class="form-label col-9">Email
                     <?php if (empty($_POST) || (!empty($_POST['email']) && !empty($_POST['password']))): ?>
                         <input type="text" name="email" placeholder="name@example.com" class="form-control my-1">
@@ -190,40 +176,44 @@ if (!file_exists('users.csv')) {
         </form>
     </div>
     <?php
-    if (filesize('users.csv') > 0): ?>
+    $pdo = getPDO();
+    $users = getUsers($pdo);
+    $pdo = null;
+    if (is_array($users)): ?>
         <div class="row justify-content-end mt-5">
             <div class="col-8 border border-primary border-2 rounded-4 p-3">
                 <?php
-                $file = fopen('users.csv', 'r') or die('Unable to open file!');
-                while (!feof($file)) {
-                    $user = explode($delimeter, fgets($file));
-                    if (!empty($user[0])):
-                        ?>
-                        <div class="row justify-content-center">
-                            <form method="POST" class="col-1 my-auto">
-                                <button type="submit" name="delete_user" value="<?= $user[0]; ?>"
-                                        class="btn btn-danger">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
-                            <div class="col">
-                                <div class="col-10">
-                                    <b>Email:</b> <?= $user[0]; ?>
-                                </div>
-                                <div class="col-10">
-                                    <b>Password:</b> <?= $user[1]; ?>
-                                </div>
+                foreach ($users as $user) { ?>
+                    <div class="row justify-content-center">
+                        <form method="POST" class="col-1 my-auto">
+                            <button type="submit" name="delete_user" value="<?= $user['id']; ?>"
+                                    class="btn btn-danger">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                        <div class="col">
+                            <div class="col-10">
+                                <b>Name:</b> <?= $user['name']; ?>
+                            </div>
+                            <div class="col-10">
+                                <b>Email:</b> <?= $user['email']; ?>
+                            </div>
+                            <div class="col-10">
+                                <b>Password:</b> <?= $user['password']; ?>
                             </div>
                         </div>
+                    </div>
 
-                    <?php endif;
-                }
-                fclose($file)
-                ?>
+                <?php } ?>
             </div>
-            <form method="POST" class="col-2 me-3">
-                <button type="submit" name="delete_all" class="btn btn-primary">Delete all</button>
-            </form>
+            <div class="col-2 me-3">
+                <form method="POST" class="mt-3">
+                    <button type="submit" name="delete_all" class="btn btn-primary">Delete all</button>
+                </form>
+                <div class="mt-3">
+                    <a href="task11.php" class="btn btn-outline-primary">Open chat</a>
+                </div>
+            </div>
         </div>
     <?php endif; ?>
 </div>

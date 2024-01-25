@@ -17,7 +17,7 @@ if (isset($_POST['add_message'])) {
     }
 }
 if (isset($_POST['become_user'])) {
-    $user = checkUser($pdo, $_POST['email'], $_POST['password']);
+    $user = checkUser($pdo, htmlspecialchars($_POST['email']), htmlspecialchars($_POST['password']));
     if ($user) {
         $_SESSION['logged_user'] = $user;
         $_SESSION['no_user'] = null;
@@ -33,6 +33,10 @@ if (isset($_POST['logout'])) {
 
 if (!empty($_GET['delete_message'])) {
     deleteMessage($pdo, $_GET['delete_message']);
+}
+
+if (isset($_POST['clear_messages'])) {
+    deleteAllMessages($pdo);
 }
 
 $messages = getMessages($pdo);
@@ -69,7 +73,11 @@ $pdo = null;
                     Chat
                 </div>
                 <ul class="list-group list-group-flush">
-                    <?php foreach ($messages as $message) : ?>
+                    <?php
+                    if (count($messages) == 0) {
+                        echo '<li class="list-group-item">No messages yet</li>';
+                    }
+                    foreach ($messages as $message) : ?>
                         <li class="list-group-item">
                             <?php
                             if ($message['name'] == null) {
@@ -90,8 +98,14 @@ $pdo = null;
                     <?php endforeach; ?>
                 </ul>
             </div>
-            <br><br>
-            <form method="post">
+            <?php if (isset($_SESSION['logged_user']) && $_SESSION['logged_user']['role'] == 'admin'): ?>
+                <div class="row justify-content-end mt-3">
+                    <form method="POST" class="col-3">
+                        <button type="submit" name="clear_messages" class="btn btn-primary">Clear messages</button>
+                    </form>
+                </div>
+            <?php endif; ?>
+            <form method="post" class="mt-3">
                 <div class="mb-3">
                     <?php if (isset($_SESSION['logged_user'])): ?>
                         <label class="form-label">Name:

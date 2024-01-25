@@ -14,9 +14,9 @@ create table if not exists users
 );
 
 insert into users (name, email, password)
-values ('admin', 'admin@gmail.com', 'admin'),
-       ('John', 'john@gmail,com', 'john'),
-       ('Jane', 'jane@gmail.com', 'jane');
+values ('admin', 'admin@gmail.com', '$2y$10$rxSXgUhBgGABd/asdmtTiu7FCI4kiVAykzeZQV8U9ptppSHW2zT/.'),
+       ('John', 'john@gmail.com', '$2y$10$fGtS1qikdXMdMt02DjksFe2BE8cJN3NkQLKtwAm7Vp88NPTVAa/v2'),
+       ('Jane', 'jane@gmail.com', '$2y$10$V4JIbZWUbDLb6COvRxUJqOnvV3.hGIjGrlFJM3gEUftjO5GwhOnAK');
 update users
 set role = 'admin'
 where name = 'admin';
