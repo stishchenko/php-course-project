@@ -1,11 +1,7 @@
 <!DOCTYPE html>
 <?php
 require_once('db.php');
-/*$file = fopen('users.txt', 'a');
-fwrite($file, password_hash('admin', PASSWORD_BCRYPT).PHP_EOL);
-fwrite($file, password_hash('john', PASSWORD_BCRYPT).PHP_EOL);
-fwrite($file, password_hash('jane', PASSWORD_BCRYPT).PHP_EOL);
-fclose($file);*/
+session_start();
 ?>
 
 <html lang="en">
@@ -98,44 +94,31 @@ fclose($file);*/
                             </div>
 
                         <?php endif; ?>
-                    <?php elseif (empty($_POST['email']) && !empty($_POST['password'])): ?>
-                        <div class="mb-3 alert alert-warning d-flex align-items-center" role="alert">
-                            <svg class="icon-small bi flex-shrink-0 me-2" role="img" aria-label="Warning:">
-                                <use xlink:href="#exclamation-triangle-fill"/>
-                            </svg>
-                            <div>
-                                Email field is required!
-                            </div>
-                        </div>
-                    <?php elseif (!empty($_POST['email']) && empty($_POST['password'])):
-                        if (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)):?>
-                            <div class="mb-3 alert alert-warning d-flex align-items-center" role="alert">
-                                <svg class="icon-small bi flex-shrink-0 me-2" role="img" aria-label="Warning:">
-                                    <use xlink:href="#exclamation-triangle-fill"/>
-                                </svg>
-                                <div>
-                                    Incorrect email field!
-                                </div>
-                            </div>
-                        <?php endif; ?>
-                        <div class="mb-3 alert alert-warning d-flex align-items-center" role="alert">
-                            <svg class="icon-small bi flex-shrink-0 me-2" role="img" aria-label="Warning:">
-                                <use xlink:href="#exclamation-triangle-fill"/>
-                            </svg>
-                            <div>
-                                Password field is required!
-                            </div>
-                        </div>
                     <?php else: ?>
-                        <div class="mb-3 alert alert-danger d-flex align-items-center" role="alert">
-                            <svg class="icon-small bi flex-shrink-0 me-2" role="img" aria-label="Danger:">
+                        <?php if (empty($_POST['email']) && !empty($_POST['password'])) {
+                            $_SESSION['error_message'] = 'Email field is required!';
+                        } elseif (!empty($_POST['email']) && empty($_POST['password'])) {
+                            $incorrect = false;
+                            if (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
+                                $_SESSION['error_message'] = 'Incorrect email field!';
+                                $incorrect = true;
+                            }
+                            $_SESSION['error_message'] = $incorrect ? $_SESSION['error_message'] .
+                                '<br>Password field is required!' : 'Password field is required!';
+                        } else {
+                            $_SESSION['error_message'] = 'Email and password fields are required!';
+                        }
+                        ?>
+                        <div class="mb-3 alert alert-warning d-flex align-items-center" role="alert">
+                            <svg class="icon-small bi flex-shrink-0 me-2" role="img" aria-label="Warning:">
                                 <use xlink:href="#exclamation-triangle-fill"/>
                             </svg>
                             <div>
-                                Email and password fields are required!
+                                <?= $_SESSION['error_message']; ?>
                             </div>
                         </div>
-                    <?php endif;
+                    <?php
+                    endif;
                 }
                 $pdo = null; ?>
             <?php endif; ?>
