@@ -89,7 +89,12 @@ $pdo = null;
         }
 
         function appendComment(name, message, date) {
-            let message_line = "<li class='list-group-item'><strong>" + name + "</strong> at " + date + ": <i>" + message + "</i></li>"
+            let message_line = '';
+            if (message.toLowerCase().includes('заборона') || message.toLowerCase().includes('decline')) {
+                message_line = "<li class='list-group-item'><strong>" + name + "</strong> at " + date + ": <i style='filter: blur(3px);'>" + message + "</i></li>"
+            } else {
+                message_line = "<li class='list-group-item'><strong>" + name + "</strong> at " + date + ": <i>" + message + "</i></li>"
+            }
             /*if (localStorage.getItem('logged_user') != null && localStorage.getItem('logged_user_role') == 'admin') {
 
                 let delete_message = '<a href="#" id="delete_message_ref" class="btn btn-outline-danger"><i class="fas fa-trash"></i></a>'
