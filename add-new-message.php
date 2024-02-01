@@ -1,12 +1,11 @@
 <?php
 
 require_once('db.php');
-session_start();
 $pdo = getPDO();
 
 if (!empty($_POST['message'])) {
-    if (isset($_SESSION['logged_user'])) {
-        addNewMessage($pdo, htmlspecialchars($_POST['message']), $_SESSION['logged_user']['id']);
+    if (!empty($_POST['logged_id'])) {
+        addNewMessage($pdo, htmlspecialchars($_POST['message']), $_POST['logged_id']);
     } else {
         if (empty($_POST['name'])) {
             $_POST['name'] = ' ';

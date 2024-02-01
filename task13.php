@@ -89,9 +89,13 @@ $pdo = null;
         }
 
         function appendComment(name, message, date) {
-            $("#list-of-messages").append(
-                "<li class='list-group-item'><strong>" + name + "</strong> at " + date + ": <i>" + message + "</i></li>"
-            );
+            let message_line = "<li class='list-group-item'><strong>" + name + "</strong> at " + date + ": <i>" + message + "</i></li>"
+            /*if (localStorage.getItem('logged_user') != null && localStorage.getItem('logged_user_role') == 'admin') {
+
+                let delete_message = '<a href="#" id="delete_message_ref" class="btn btn-outline-danger"><i class="fas fa-trash"></i></a>'
+                message_line = message_line + delete_message;
+            }*/
+            $("#list-of-messages").append(message_line);
         }
 
         $(document).ready(function () {
@@ -122,7 +126,8 @@ $pdo = null;
                 let data = {
                     name: $(this).find('input[name="name"]').val(),
                     message: $(this).find('input[name="message"]').val(),
-                    date: getCurrentDateTime()
+                    date: getCurrentDateTime(),
+                    logged_id: localStorage.getItem('logged_user_id')
                 };
 
                 $.ajax({
@@ -158,6 +163,8 @@ $pdo = null;
                             if (!has_error) {
                                 localStorage.setItem('logged_user', data.logged_user);
                                 localStorage.setItem('logged_user_name', data.logged_user.name);
+                                localStorage.setItem('logged_user_id', data.logged_user.id);
+                                //localStorage.setItem('logged_user_role', data.logged_user.role);
                                 $('#label-for-name').html('Name: <strong>' + data.logged_user.name + '</strong>');
                                 $('input[name="name"]').hide();
                                 $("#error-div").addClass('d-none');
@@ -173,12 +180,10 @@ $pdo = null;
 
             $('#logout-form').submit(function (event) {
                 event.preventDefault();
-                $.ajax({
-                    url: 'logout.php',
-                    method: 'GET'
-                });
                 localStorage.removeItem('logged_user');
                 localStorage.removeItem('logged_user_name');
+                localStorage.removeItem('logged_user_id');
+                //localStorage.removeItem('logged_user_role');
                 $('#label-for-name').text('Name: ');
                 $('input[name="name"]').show();
                 checkLoggedUser();
@@ -196,29 +201,7 @@ $pdo = null;
                     Chat
                 </div>
                 <ul class="list-group list-group-flush" id="list-of-messages">
-                    <?php
-                    /*                    if (count($messages) == 0) {
-                                            echo '<li class="list-group-item">No messages yet</li>';
-                                        }
-                                        foreach ($messages as $message) : */ ?><!--
-                        <li class="list-group-item">
-                            <?php
-                    /*                            if ($message['name'] == null) {
-                                                    $data = explode(':', $message['message']);
-                                                    $message['name'] = $data[0];
-                                                    $message['message'] = $data[1];
-                                                }
-                                                */ ?>
-                            <strong><?php /*= $message['name']; */ ?></strong> at
-                            <?php /*= $message['date']; */ ?> :
-                            <i><?php /*= $message['message']; */ ?></i>
-                            <?php /*if (isset($_SESSION['logged_user']) &&
-                                $_SESSION['logged_user']['role'] == 'admin'): */ ?>
-                                <a href="?delete_message=<?php /*= $message['id']; */ ?>" class="btn btn-outline-danger"><i
-                                            class="fas fa-trash"></i></a>
-                            <?php /*endif; */ ?>
-                        </li>
-                    --><?php /*endforeach; */ ?>
+
                 </ul>
             </div>
             <?php /*if (isset($_SESSION['logged_user']) && $_SESSION['logged_user']['role'] == 'admin'): */ ?><!--
@@ -267,43 +250,6 @@ $pdo = null;
                             <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
                         </symbol>
                     </svg>
-                    <?php
-                    /*if (isset($_POST['become_user'])):
-                        if (!empty($_POST['email']) && !empty($_POST['password'])):
-                            if (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)):*/ ?><!--
-                                <div class="mb-3 alert alert-warning d-flex align-items-center" role="alert">
-                                    <svg class="icon-small bi flex-shrink-0 me-2" role="img" aria-label="Warning:">
-                                        <use xlink:href="#exclamation-triangle-fill"/>
-                                    </svg>
-                                    <div>
-                                        Incorrect email field!
-                                    </div>
-                                </div>
-                            <?php /*elseif (isset($_SESSION['no_user'])): */ ?>
-                                <div class="mb-3 alert alert-danger d-flex align-items-center" role="alert">
-                                    <svg class="icon-small bi flex-shrink-0 me-2" role="img" aria-label="Warning:">
-                                        <use xlink:href="#exclamation-triangle-fill"/>
-                                    </svg>
-                                    <div>
-                                        <?php /*= $_SESSION['no_user']; */ ?>
-                                    </div>
-                                </div>
-                            <?php /*endif; */ ?>
-                        <?php /*else: */ ?>
-                            --><?php /*if (empty($_POST['email']) && !empty($_POST['password'])) {
-                                $_SESSION['error_message'] = 'Email field is required!';
-                            } elseif (!empty($_POST['email']) && empty($_POST['password'])) {
-                                $incorrect = false;
-                                if (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
-                                    $_SESSION['error_message'] = 'Incorrect email field!';
-                                    $incorrect = true;
-                                }
-                                $_SESSION['error_message'] = $incorrect ? $_SESSION['error_message'] .
-                                    '<br>Password field is required!' : 'Password field is required!';
-                            } else {
-                                $_SESSION['error_message'] = 'Email and password fields are required!';
-                            }
-                            */ ?>
                     <div id="error-div" class="mb-3 alert alert-warning d-flex align-items-center d-none" role="alert">
                         <svg class="icon-small bi flex-shrink-0 me-2" role="img" aria-label="Warning:">
                             <use xlink:href="#exclamation-triangle-fill"/>
@@ -312,10 +258,6 @@ $pdo = null;
 
                         </div>
                     </div>
-                    <?php
-                    /*                        endif;
-                                        endif; */ ?>
-
                 </div>
             </div>
             <div class="row justify-content-center">
