@@ -1,5 +1,6 @@
 <?php
-require_once 'Hero.php';
+
+namespace models;
 
 class Arena
 {

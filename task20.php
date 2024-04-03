@@ -1,9 +1,8 @@
 <?php
-require_once 'Hero.php';
-require_once 'Weapon.php';
-require_once 'heroes.php';
-require_once 'HeroCreator.php';
-require 'Arena.php';
+
+use models\Arena;
+
+require __DIR__ . '/vendor/autoload.php';
 
 $heroCreator = new HeroCreator();
 
