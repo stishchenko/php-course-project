@@ -1,5 +1,7 @@
 <?php
 
+namespace models;
+
 class Weapon
 {
     public string $type;

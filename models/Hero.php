@@ -1,6 +1,6 @@
 <?php
 
-require_once 'Weapon.php';
+namespace models;
 
 abstract class Hero
 {

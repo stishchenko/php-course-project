@@ -1,0 +1,20 @@
+{
+  "name": "php_course_project/task30",
+  "description": "description",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "setis",
+      "email": "email@example.com"
+    }
+  ],
+  "require": {
+  },
+  "autoload": {
+    "psr-4": {
+      "strategies\\": "strategies/",
+      "models\\": "models/"
+    }
+  }
+}
